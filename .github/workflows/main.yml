@@ -29,7 +29,7 @@ jobs:
       - name: Build Android APK
         run: flutter build apk --release --split-per-abi
 
-      - name: List build directory contents for Android
+      - name: List APK directory contents for Android
         run: |
           echo "Contents of build/app/outputs/apk/release:"
           ls -R build/app/outputs/apk/release/
@@ -38,7 +38,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: |
-            build/app/outputs/apk/release/**/*.apk  # Use wildcard to match any APK
+            build/app/outputs/apk/release/*.apk  # Match any APK
           tag: v1.0.${{ github.run_number }}  # Use run number for uniqueness
           token: ${{ secrets.TOKEN }}
           skipIfReleaseExists: true  # Skip if the release already exists
@@ -67,7 +67,7 @@ jobs:
           cd ..
           zip -r app.ipa Payload
 
-      - name: List build directory contents for iOS
+      - name: List IPA directory contents for iOS
         run: |
           echo "Contents of build/ios/iphoneos:"
           ls -R build/ios/iphoneos/
@@ -75,7 +75,7 @@ jobs:
       - name: Push iOS IPA to Releases
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/ios/iphoneos/app.ipa"
+          artifacts: build/ios/iphoneos/app.ipa  # Match the IPA
           tag: v1.0.${{ github.run_number }}  # Use run number for uniqueness
           token: ${{ secrets.TOKEN }}
           skipIfReleaseExists: true  # Skip if the release already exists
@@ -92,7 +92,7 @@ jobs:
         with:
           tag_name: v1.0.${{ github.run_number }}  # Corrected to tag_name
           files: |
-            build/app/outputs/apk/release/**/*.apk  # Match any APK
-            build/ios/iphoneos/app.ipa
+            build/app/outputs/apk/release/*.apk  # Match any APK
+            build/ios/iphoneos/app.ipa  # Match IPA
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token to authenticate with GitHub
