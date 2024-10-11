@@ -10,10 +10,17 @@ class ChatingList extends StatefulWidget {
 class _ChatingListState extends State<ChatingList> {
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: const Text("Chating List"),
       ),
+      body: ListView.builder(
+          itemCount: 20,
+          itemBuilder: (context, index) {
+            return const ListTile(
+              title: Text("Firoz"),
+            );
+          }),
     );
   }
 }
