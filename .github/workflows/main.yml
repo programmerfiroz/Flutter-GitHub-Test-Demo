@@ -3,13 +3,10 @@ name: "Build & Release"
 on:
   pull_request:
     branches:
-      - main
-      - master
+      - chat
   push:
     branches:
-      - main
-      - master
-      - develop
+      - chat
 
 jobs:
   build-android:
@@ -102,20 +99,23 @@ jobs:
             ## Build Details
             - **Run ID:** ${{ github.run_id }}
             - **Commit SHA:** ${{ github.sha }}
-          token: ${{ secrets.TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          skipIfReleaseExists: true  # Skip if the release already exists to avoid error
 
       - name: Upload Android APK to Release
+        if: steps.create_release.outputs.id != ''
         uses: ncipollo/release-action@v1
         with:
           tag: v1.0.${{ github.run_id }}-${{ github.sha }}
           name: Release v1.0.${{ github.run_id }}-${{ github.sha }}
-          files: build/app/outputs/apk/release/*.apk
-          token: ${{ secrets.TOKEN }}
+          artifacts: "build/app/outputs/apk/release/*.apk"
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload iOS IPA to Release
+        if: steps.create_release.outputs.id != ''
         uses: ncipollo/release-action@v1
         with:
           tag: v1.0.${{ github.run_id }}-${{ github.sha }}
           name: Release v1.0.${{ github.run_id }}-${{ github.sha }}
-          files: build/ios/iphoneos/app.ipa
-          token: ${{ secrets.TOKEN }}
+          artifacts: "build/ios/iphoneos/app.ipa"
+          token: ${{ secrets.GITHUB_TOKEN }}
