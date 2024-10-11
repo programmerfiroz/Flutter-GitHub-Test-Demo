@@ -33,6 +33,9 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Run Tests
+        run: flutter test
+
       - name: Build APK
         run: flutter build apk --release --split-per-abi
 
@@ -56,6 +59,9 @@ jobs:
 
       - name: Install Dependencies
         run: flutter pub get
+
+      - name: Run Tests
+        run: flutter test
 
       - name: Build iOS
         run: flutter build ios --no-codesign
@@ -86,15 +92,16 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: android-apk
+          path: android-apk
 
       - name: Download iOS Artifact
         uses: actions/download-artifact@v3
         with:
           name: ios-ipa
+          path: ios-ipa
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: ncipollo/release-action@v1
+      - name: Create GitHub Release and Upload Assets
+        uses: ncipollo/release-action@v1.9.0
         with:
           tag: v1.0.${{ github.run_id }}-${{ github.sha }}
           name: Release v1.0.${{ github.run_id }}-${{ github.sha }}
@@ -102,20 +109,7 @@ jobs:
             ## Build Details
             - **Run ID:** ${{ github.run_id }}
             - **Commit SHA:** ${{ github.sha }}
-          token: ${{ secrets.TOKEN }}
-
-      - name: Upload Android APK to Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: v1.0.${{ github.run_id }}-${{ github.sha }}
-          name: Release v1.0.${{ github.run_id }}-${{ github.sha }}
-          files: build/app/outputs/apk/release/*.apk
-          token: ${{ secrets.TOKEN }}
-
-      - name: Upload iOS IPA to Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: v1.0.${{ github.run_id }}-${{ github.sha }}
-          name: Release v1.0.${{ github.run_id }}-${{ github.sha }}
-          files: build/ios/iphoneos/app.ipa
+          files: |
+            android-apk/*.apk
+            ios-ipa/*.ipa
           token: ${{ secrets.TOKEN }}
