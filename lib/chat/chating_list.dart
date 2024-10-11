@@ -17,9 +17,7 @@ class _ChatingListState extends State<ChatingList> {
       body: ListView.builder(
           itemCount: 20,
           itemBuilder: (context, index) {
-            return const ListTile(
-              title: Text("Firoz"),
-            );
+            return Container();
           }),
     );
   }
