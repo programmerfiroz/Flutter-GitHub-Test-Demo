@@ -61,7 +61,7 @@ jobs:
           zip -r app.ipa Payload
 
       - name: Push iOS IPA to Releases
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v2
         with:
           artifacts: "build/ios/iphoneos/app.ipa"
           tag: v1.0.${{ github.run_number }}
