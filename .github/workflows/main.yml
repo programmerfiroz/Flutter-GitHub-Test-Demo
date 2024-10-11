@@ -1,3 +1,5 @@
+name: "Build & Release"
+
 on:
   pull_request:
     branches:
@@ -8,10 +10,10 @@ on:
       - main
       - master
       - develop
-name: "Build & Release"
+
 jobs:
-  build:
-    name: Build & Release
+  build-android:
+    name: Build Android
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -25,25 +27,37 @@ jobs:
           architecture: x64
 
       - run: flutter build apk --release --split-per-abi
+
+      - name: Push to Releases
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/app/outputs/apk/release/*"
+          tag: v1.0.${{ github.run_number }}
+          token: ${{ secrets.TOKEN }}
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: x64
+
+      - run: flutter build ios --no-codesign
+
       - run: |
-          flutter build ios --no-codesign
           cd build/ios/iphoneos
           mkdir Payload
           cd Payload
           ln -s ../Runner.app
           cd ..
           zip -r app.ipa Payload
+
       - name: Push to Releases
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/apk/release/*,build/ios/iphoneos/app.ipa"
+          artifacts: "build/ios/iphoneos/app.ipa"
           tag: v1.0.${{ github.run_number }}
           token: ${{ secrets.TOKEN }}
-
-
-
-
-
-
-# push to master, main, develop
-# pull request on main master
