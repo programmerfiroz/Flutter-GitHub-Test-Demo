@@ -1,3 +1,5 @@
+name: "Build & Release"
+
 on:
   pull_request:
     branches:
@@ -9,19 +11,22 @@ on:
       - master
       - develop
 
-name: "Build & Release"
-
 jobs:
   android-build:
-    name: Build & Release Android (Windows)
+    name: Build Android APK
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up Java
+        uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
-      - uses: subosito/flutter-action@v2
+
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           architecture: x64
@@ -29,30 +34,32 @@ jobs:
       - name: Build Android APK
         run: flutter build apk --release --split-per-abi
 
-      - name: List APK directory contents for Android
+      - name: List APK Directory Contents
         run: |
-          echo "Contents of build/app/outputs/apk/release:"
-          ls -R build/app/outputs/apk/release/
+          echo "Contents of build/app/outputs/flutter-apk/:"
+          ls -R build/app/outputs/flutter-apk/
 
-      - name: Push Android APK to Releases
-        uses: ncipollo/release-action@v1
+      - name: Upload APKs as Artifact
+        uses: actions/upload-artifact@v3
         with:
-          artifacts: |
-            build/app/outputs/apk/release/*.apk  # Match any APK
-          tag: v1.0.${{ github.run_number }}  # Use run number for uniqueness
-          token: ${{ secrets.TOKEN }}
-          skipIfReleaseExists: true  # Skip if the release already exists
+          name: android-apks
+          path: build/app/outputs/flutter-apk/*.apk
 
   ios-build:
-    name: Build & Release iOS
+    name: Build iOS IPA
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up Java
+        uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
-      - uses: subosito/flutter-action@v2
+
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           architecture: x64
@@ -67,42 +74,54 @@ jobs:
           cd ..
           zip -r app.ipa Payload
 
-      - name: List IPA directory contents for iOS
+      - name: List IPA Directory Contents
         run: |
-          echo "Contents of build/ios/iphoneos:"
+          echo "Contents of build/ios/iphoneos/:"
           ls -R build/ios/iphoneos/
 
-      - name: Push iOS IPA to Releases
-        uses: ncipollo/release-action@v1
+      - name: Upload IPA as Artifact
+        uses: actions/upload-artifact@v3
         with:
-          artifacts: build/ios/iphoneos/app.ipa  # Match the IPA
-          tag: v1.0.${{ github.run_number }}  # Use run number for uniqueness
-          token: ${{ secrets.TOKEN }}
-          skipIfReleaseExists: true  # Skip if the release already exists
+          name: ios-ipa
+          path: build/ios/iphoneos/app.ipa
 
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [android-build, ios-build]  # Ensure this job runs after the Android and iOS jobs
+    needs: [android-build, ios-build]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Debug APK directory before release
+      - name: Download Android APKs
+        uses: actions/download-artifact@v3
+        with:
+          name: android-apks
+          path: ./android-apks
+
+      - name: Download iOS IPA
+        uses: actions/download-artifact@v3
+        with:
+          name: ios-ipa
+          path: ./ios-ipa
+
+      - name: List Downloaded Artifacts
         run: |
-          echo "Checking APK directory:"
-          ls -R build/app/outputs/apk/release/
+          echo "Android APKs:"
+          ls -R ./android-apks
+          echo "iOS IPA:"
+          ls -R ./ios-ipa
 
-      - name: Debug IPA directory before release
-        run: |
-          echo "Checking IPA directory:"
-          ls -R build/ios/iphoneos/
-
-      - name: Create Release
+      - name: Create GitHub Release
+        id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v1.0.${{ github.run_number }}  # Corrected to tag_name
+          tag_name: v1.0.${{ github.run_number }}
+          name: Release v1.0.${{ github.run_number }}
+          body: |
+            Release of version v1.0.${{ github.run_number }}
           files: |
-            build/app/outputs/apk/release/*.apk  # Match any APK
-            build/ios/iphoneos/app.ipa  # Match IPA
+            ./android-apks/*.apk
+            ./ios-ipa/*.ipa
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token to authenticate with GitHub
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
