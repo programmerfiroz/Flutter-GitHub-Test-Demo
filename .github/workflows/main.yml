@@ -11,6 +11,11 @@ on:
       - master
       - develop
 
+# Define explicit permissions for the workflow
+permissions:
+  contents: write      # Allows reading and writing repository contents
+  releases: write      # Allows creating and updating releases
+
 jobs:
   android-build:
     name: Build Android APK
@@ -30,6 +35,9 @@ jobs:
         with:
           channel: 'stable'
           architecture: x64
+
+      - name: Flutter Pub Get
+        run: flutter pub get
 
       - name: Build Android APK
         run: flutter build apk --release --split-per-abi
@@ -64,6 +72,9 @@ jobs:
           channel: 'stable'
           architecture: x64
 
+      - name: Flutter Pub Get
+        run: flutter pub get
+
       - name: Build iOS IPA
         run: |
           flutter build ios --no-codesign
@@ -88,7 +99,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [android-build, ios-build]
+    needs: [android-build, ios-build]  # Ensure this job runs after the Android and iOS build jobs
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
