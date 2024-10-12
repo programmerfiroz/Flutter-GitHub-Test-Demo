@@ -13,8 +13,7 @@ on:
 
 # Define explicit permissions for the workflow
 permissions:
-  contents: write      # Allows reading and writing repository contents
-  releases: write      # Allows creating and updating releases
+  contents: write  # Allows reading and writing repository contents
 
 jobs:
   android-build:
